@@ -23,8 +23,8 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         Text("**Esto es un texto en negrita.** *Esto es un texto en cursiva* Podemos añadir un [link a un sitio web](http://www.tectroya.cl)")
-            //13. Ahora añadiremos la fuente personalizada (.custom), en nuestro caso Poppins con tamaño 20
-            .font(.custom("Poppins", size: 20))
+            //13. Ahora añadiremos la fuente personalizada (.custom), en nuestro caso Poppins (como la fuente) o Poppins-Black y Poppins-Medium con su estilo, con tamaño 20
+            .font(.custom("Poppins-Black", size: 20))
             .foregroundStyle(.purple)
             .multilineTextAlignment(.center)
             .lineLimit(3)

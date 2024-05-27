@@ -5,15 +5,11 @@
 //  Created by Danilo Andrusco on 20-05-24.
 //
 
-//1. Vamos a combinar gestos, para ello modificaremos este codigo
-
 import SwiftUI
 
 struct ContentView: View {
     
-    //2. Vamos a necesitar una variable de estado de gestos pero booleana
     @GestureState private var isTapped = false
-
     @GestureState private var dragOffset = CGSize.zero
     @State private var currentPosition = CGSize.zero
     
@@ -21,24 +17,16 @@ struct ContentView: View {
         Image(systemName: "book.circle.fill")
             .font(.system(size: 100))
             .foregroundStyle(.teal)
-            //4. Crearemos el efecto de opacidad cuando este pulsado
             .opacity(self.isTapped ? 0.5: 1.0)
             .offset(x: self.currentPosition.width + self.dragOffset.width, y: self.currentPosition.height + self.dragOffset.height)
             .animation(.easeInOut, value: self.dragOffset)
             .gesture(
-                //5. Partiremos con un LongPress
                 LongPressGesture(minimumDuration: 1.0)
                     .updating(self.$isTapped, body: { value, state, transaction in
                             state = value
                     })
-                    //6. A este updating debe seguirle una secuencia donde le indicaremos que le puede seguir un DragGesture()
                     .sequenced(before: DragGesture())
-                //7. Este DragGesture esta demas
-                /*DragGesture()*/
-                
-                    //8. AHora deberemos crear el updating para el DragGesture
                     .updating(self.$dragOffset, body: { value, state, transaction in
-                        //9. Ahora deberemos distingir si el drag procede del primer tap o del segundo, para ello deberemos hacer un switch para el valor que nos llegue por parametro
                         switch value{
                         //10. Implementaremos los casos, para el primero:
                         case .first(true):

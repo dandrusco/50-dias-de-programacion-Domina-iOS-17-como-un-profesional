@@ -12,9 +12,9 @@ struct F15_GestosApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(){
-                Image(systemName: "book.circle.fill")
-                    .font(.system(size: 100))
-                    .foregroundStyle(.teal)
+                Text("TecTroya")
+                    .font(.system(size: 50, weight: .bold, design: .rounded))
+                    .foregroundStyle(.green)
             }
         }
     }

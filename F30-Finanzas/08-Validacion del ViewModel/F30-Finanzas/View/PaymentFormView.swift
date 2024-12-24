@@ -5,112 +5,156 @@
 //  Created by Danilo Andrusco on 23-12-24.
 //
 
-
-
 import SwiftUI
 
 struct PaymentFormView: View {
     
-    //8. Para cerrar la ventana necesitamos una @Environment(\.dismiss)
+    // falta esto
+    @Environment(\.modelContext) var modelContext
+    
+    @ObservedObject private var paymentFormVM : PaymentFormViewModel
+    
     @Environment(\.dismiss) var dismiss
     
-    //1. Vamos a necesitar un pago pero de tipo opcional
     var payment: PaymentRecord?
     
-    //2. Crearemos un init, para inicializar el PaymentRecord si es que disponemos de el
     init(payment: PaymentRecord? = nil) {
         self.payment = payment
+        self.paymentFormVM = PaymentFormViewModel(payment: payment)
     }
     
     var body: some View {
-        //3 Creamos una ScrollView
         ScrollView{
-            //4. creamos una VStack con espaciado 0
             VStack(spacing: 0, content: {
-                //5. Creamos el Título
                 HStack(alignment: .lastTextBaseline, content: {
                     Text("Nuevo Registro")
                         .font(.system(.title, design: .rounded))
                         .fontWeight(.bold)
                         .padding(.bottom)
-                    //6. Lo mandamos para arriba
                     Spacer()
-                    //7. Cremamos un boton para cerrar
                     Button(action: {
-                        //9. La llamamos en la accion
                         dismiss()
                     }, label: {
-                        //10. Ponemos la imagen
                         Image(systemName: "multiply")
                             .font(.title)
                             .foregroundStyle(.teal)
                     })
                 })
                 
-                //11. Creamos el Tipo de Registro en una VStack
+                //XX. Creamos un grupo para las validaciones
+                Group{
+                    //
+                    if !self.paymentFormVM.isNameValid{
+                        ValidationErrorText(text: "Introduce un nombre válido para el registro")
+                    }
+                    
+                    if !self.paymentFormVM.isAmountValid {
+                        ValidationErrorText(text: "Introduce una cantidad positiva")
+                    }
+                    
+                    if !self.paymentFormVM.isNoteValid {
+                        ValidationErrorText(text: "Las notas no pueden superar los 150 caracteres")
+                    }
+                }
+                
+                //XX. Creamos el campo de Nombre asociado al ViewModel asociado
+                FormTextField(name: "Nombre", placeholder: "Introduce tu registro", value: self.$paymentFormVM.name)
+                    .padding(.top)
+                
                 VStack(alignment: .leading, content: {
-                    //12. metemos el texto
                     Text("Tipo de Registro")
                         .font(.system(.subheadline, design: .rounded))
                         .fontWeight(.bold)
                         .foregroundStyle(.primary)
                         .padding(.vertical, 12)
-                    //13. Creamos una HStack para meter un boton
+                    
                     HStack(spacing: 0){
                         Button(action:{
-                            //TODO: Pendiente
+                            //XX. registramos la accion tipo ingreso
+                            self.paymentFormVM.type = .income
                         }){
-                            //14. Metemos el texto
                             Text("Ingreso")
                             .font(.headline)
+                            //XX Comprobamos si es un ingreso o gasto para cambiar el color del texto
+                            .foregroundStyle(self.paymentFormVM.type == .income ? Color.white : Color.primary)
                         }
-                        //15. Creamos un frame para el boton
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .padding()
                         .padding(.vertical, 16)
-                        //16.Para el color del boton lo vamos a crear en el Assets, y creamos un color set, llamado Income y su tonalidad sera verde
-                        //17. Prepararemos otro llamado Expense, con tonalidad roja
+                        //XX Comprobamos si es un ingreso o gasto para cambiar el color del boton
+                        .background(self.paymentFormVM.type == .income ?  Color("Income") : Color("NoActive"))
                         
-                        //18. Ahora realizaremos lo mismo para el gasto
+                        
                         Button(action:{
-                            //TODO: Pendiente
+                            //XX. registramos la accion tipo gasto
+                            self.paymentFormVM.type = .expense
                         }){
                             Text("Gasto")
                             .font(.headline)
+                            //XX Comprobamos si es un ingreso o gasto para cambiar el color del texto
+                            .foregroundStyle(self.paymentFormVM.type == .expense ? Color.white : Color.primary)
                         }
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .padding()
                         .padding(.vertical, 16)
+                        //XX Comprobamos si es un ingreso o gasto para cambiar el color del boton
+                        .background(self.paymentFormVM.type == .expense ? Color("Expense") : Color("NoActive"))
                     }
-                    //19. Agruparemos los botones en un border
                     .border(Color("Border"), width: 1.0)
                     
-                    //20 Creamos el boton de Guardar
+                    
+                    //XX. Creamos una HStack para agrupar Fecha y Cantidad
+                    HStack{
+                        FormDateField(name: "Fecha", value: self.$paymentFormVM.date)
+                        FormTextField(name: "Cantidad (en €)", placeholder: "0.0", value: self.$paymentFormVM.amount)
+                    }
+                    
+                    //XX Registramos donde hemos realizado el gasto
+                    FormTextField(name: "Ubicación (opcional)", placeholder: "¿Dónde fue la compra?", value: self.$paymentFormVM.location)
+                    
+                    //XX algunas Notas opcionales
+                    FormTextEditor(name: "Notas (opcional)", value: self.$paymentFormVM.notes)
+                    
                     Button(action: {
-                        //22. Ponemos para guardar y para cerrar
                         save()
                         dismiss()
                     }) {
-                        //23. Configuramos el texto a guardar
                         Text("Guardar")
+                            //XX Bajamos la opacidad al 50% si no es posible guardar
+                            .opacity(self.paymentFormVM.isFormValid ? 1.0 : 0.5)
                             .font(.headline)
                             .foregroundStyle(.white)
                             .padding(24)
                             .frame(minWidth: 0, maxWidth: .infinity)
+                            //XX
+                            .background(.teal.opacity(self.paymentFormVM.isFormValid ? 1.0 : 0.5))
                             .cornerRadius(12.0)
                     }
-                    //24. Le ponemos un pading al boton
                     .padding()
+                    //XX
+                    .disabled(!self.paymentFormVM.isFormValid)
                 })
             })
-            //25. Le ponemos un pading global
             .padding()
         }
+        //XX vamos a mover el formulario si hay teclado en pantalla
+        .keyboardAdapter()
     }
     
-    //21 Creamos la funcion para el guardado de datos
     private func save(){
-        //TODO: Pendiente
+        // falta esto
+        let payment = PaymentRecord(date: self.paymentFormVM.date,
+                                    name: self.paymentFormVM.name,
+                                    location: self.paymentFormVM.location,
+                                    amount: Double(self.paymentFormVM.amount)!,
+                                    notes: self.paymentFormVM.notes,
+                                    type: self.paymentFormVM.type)
+        
+        if let p = self.payment{
+            self.modelContext.delete(p)
+        }
+        
+        self.modelContext.insert(payment)
     }
 }
 

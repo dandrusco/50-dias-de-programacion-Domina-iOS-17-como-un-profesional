@@ -9,7 +9,6 @@ import SwiftUI
 
 struct PaymentFormView: View {
     
-    //19. Creamos una variable de entorno que tendra el modelContext para el registro de pago
     @Environment(\.modelContext) var modelContext
     
     @ObservedObject private var paymentFormVM : PaymentFormViewModel
@@ -41,23 +40,18 @@ struct PaymentFormView: View {
                     })
                 })
                 
-                //22. Creamos un grupo para las validaciones
                 Group{
-                    //23. Si no es valido el nombre
                     if !self.paymentFormVM.isNameValid{
                         ValidationErrorText(text: "Introduce un nombre válido para el registro")
                     }
-                    //24. Si la cantidad no es positiva
                     if !self.paymentFormVM.isAmountValid {
                         ValidationErrorText(text: "Introduce una cantidad positiva")
                     }
-                    //25. Si las notas superan los 150 caracteres
                     if !self.paymentFormVM.isNoteValid {
                         ValidationErrorText(text: "Las notas no pueden superar los 150 caracteres")
                     }
                 }
                 
-                //26. Creamos el campo de Nombre asociado al ViewModel asociado
                 FormTextField(name: "Nombre", placeholder: "Introduce tu registro", value: self.$paymentFormVM.name)
                     .padding(.top)
                 
@@ -70,50 +64,38 @@ struct PaymentFormView: View {
                     
                     HStack(spacing: 0){
                         Button(action:{
-                            //27. registramos la accion tipo ingreso
                             self.paymentFormVM.type = .income
                         }){
                             Text("Ingreso")
                             .font(.headline)
-                            //28 Comprobamos si es un ingreso o gasto para cambiar el color del texto
                             .foregroundStyle(self.paymentFormVM.type == .income ? Color.white : Color.primary)
                         }
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .padding()
                         .padding(.vertical, 16)
-                        //29. Creamos un nuevo color llamado NoActive que sea plomo
-                        //30 Comprobamos si es un ingreso o gasto para cambiar el color del boton
                         .background(self.paymentFormVM.type == .income ?  Color("Income") : Color("NoActive"))
                         
-                        
                         Button(action:{
-                            //31. registramos la accion tipo gasto
                             self.paymentFormVM.type = .expense
                         }){
                             Text("Gasto")
                             .font(.headline)
-                            //32. Comprobamos si es un ingreso o gasto para cambiar el color del texto
                             .foregroundStyle(self.paymentFormVM.type == .expense ? Color.white : Color.primary)
                         }
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .padding()
                         .padding(.vertical, 16)
-                        //33. Comprobamos si es un ingreso o gasto para cambiar el color del boton
                         .background(self.paymentFormVM.type == .expense ? Color("Expense") : Color("NoActive"))
                     }
                     .border(Color("Border"), width: 1.0)
                     
-                    
-                    //34. Creamos una HStack para agrupar Fecha y Cantidad
                     HStack{
                         FormDateField(name: "Fecha", value: self.$paymentFormVM.date)
                         FormTextField(name: "Cantidad (en €)", placeholder: "0.0", value: self.$paymentFormVM.amount)
                     }
                     
-                    //35. Registramos donde hemos realizado el gasto
                     FormTextField(name: "Ubicación (opcional)", placeholder: "¿Dónde fue la compra?", value: self.$paymentFormVM.location)
                     
-                    //36. algunas Notas opcionales
                     FormTextEditor(name: "Notas (opcional)", value: self.$paymentFormVM.notes)
                     
                     Button(action: {
@@ -121,36 +103,39 @@ struct PaymentFormView: View {
                         dismiss()
                     }) {
                         Text("Guardar")
-                            //37. Bajamos la opacidad al 50% si no es posible guardar
                             .opacity(self.paymentFormVM.isFormValid ? 1.0 : 0.5)
                             .font(.headline)
                             .foregroundStyle(.white)
                             .padding(24)
                             .frame(minWidth: 0, maxWidth: .infinity)
-                            //38. Bajamos la opacidad del background al 50% si no es posible guardar
                             .background(.teal.opacity(self.paymentFormVM.isFormValid ? 1.0 : 0.5))
                             .cornerRadius(12.0)
                     }
-                    //39. metemos un pading
                     .padding()
-                    //40. desactivaremos el boton cuando no sea valido
                     .disabled(!self.paymentFormVM.isFormValid)
                 })
             })
             .padding()
         }
+        //01 vamos a mover el formulario si hay teclado en pantalla, esto a contar de iOS14 lo hace por si solo, pero aprederemos a crearlo para versiones anteriores
+        //02. Creamos un nuevo grupo o carpeta que llamaremos Modifiers (Modificadores)
+        //03. Dentro de esta carpeta crearemos un archivo de SfwitUI llamado KeyboarAdaptar
+        
+        //24. LLamamaos al modificador
+        .keyboardAdapter()
     }
     
     private func save(){
-        //20. Creamos una constante payment que sea igual a PaymentRecord pasandole todos los datos
         let payment = PaymentRecord(date: self.paymentFormVM.date,
                                     name: self.paymentFormVM.name,
                                     location: self.paymentFormVM.location,
                                     amount: Double(self.paymentFormVM.amount)!,
                                     notes: self.paymentFormVM.notes,
                                     type: self.paymentFormVM.type)
-    
-        //21. Ahora es el modelContext quien se enarga de insertar en el modelo el nuevo pago generado
+        // falta esto
+        if let p = self.payment{
+            self.modelContext.delete(p)
+        }
         self.modelContext.insert(payment)
     }
 }

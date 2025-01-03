@@ -127,8 +127,9 @@ struct PaymentFormView: View {
                                     amount: Double(self.paymentFormVM.amount)!,
                                     notes: self.paymentFormVM.notes,
                                     type: self.paymentFormVM.type)
-        // falta esto
+        //39. Si se puede obtener el pago por que ya existe?
         if let p = self.payment{
+            //40. Lo vamos a eliminar ya que entramos en el modo de editar
             self.modelContext.delete(p)
         }
         self.modelContext.insert(payment)
